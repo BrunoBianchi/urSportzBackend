@@ -1,54 +1,21 @@
 import "reflect-metadata";
-import express from "express";
-import * as dotenv from "dotenv";
+import dotenv from "dotenv";
+import { createApp } from "./app.js";
+import { bootstrap } from "./bootstrap.js";
 dotenv.config();
-import cors from "cors";
-import { driver } from "./database/neo4j/data-source.js";
-import { r as apiRouter } from "./controllers/api/api-controller.js";
-import { startScheduledJobs } from "./jobs/scheduler.js";
-const app = express();
-import { AppDataSource } from "./database/postgres/data-source.js";
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use("/api", apiRouter);
-app.get("/health", (_req, res) => {
-    res.json({ status: "ok" });
-});
-app.use((err, _req, res, _next) => {
-    console.log(err);
-    console.error("Unhandled error", err);
-    const errorResponse = {
-        message: "Internal server error",
-        error: err instanceof Error ? err.message : String(err)
-    };
-    if (err instanceof Error && err.stack) {
-        console.error(err.stack);
-    }
-    res.status(500).json(errorResponse);
-});
 const PORT = Number(process.env.PORT ?? 3000);
-const SHOULD_SYNC_SCHEMA = process.env.TYPEORM_SYNC === "true";
-AppDataSource.initialize()
-    .then(async (dataSource) => {
-    await driver.getServerInfo();
+async function startServer() {
     try {
-        await dataSource.query("SET default_transaction_use_follower_reads = off");
+        await bootstrap({ startJobs: true });
+        const app = createApp();
+        app.listen(PORT, () => {
+            console.log(`EsporTz API listening on http://localhost:${PORT}`);
+        });
     }
     catch (err) {
-        console.warn("Could not disable follower reads", err);
+        console.error("Error during application bootstrap", err);
+        process.exit(1);
     }
-    if (SHOULD_SYNC_SCHEMA) {
-        await dataSource.synchronize();
-        console.info("Database schema synchronized");
-    }
-    app.listen(PORT, () => {
-        console.log(`EsporTz API listening on http://localhost:${PORT}`);
-        // Inicia scheduled jobs
-        startScheduledJobs();
-    });
-})
-    .catch(err => {
-    console.error("Error during Data Source initialization", err);
-});
+}
+void startServer();
 //# sourceMappingURL=server.js.map

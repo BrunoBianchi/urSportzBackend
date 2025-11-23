@@ -46,11 +46,11 @@ __decorate([
 ], Match.prototype, "title", void 0);
 __decorate([
     ManyToOne(() => Team),
-    __metadata("design:type", Team)
+    __metadata("design:type", Object)
 ], Match.prototype, "homeTeam", void 0);
 __decorate([
     ManyToOne(() => Team),
-    __metadata("design:type", Team)
+    __metadata("design:type", Object)
 ], Match.prototype, "awayTeam", void 0);
 __decorate([
     Column('int'),
@@ -90,7 +90,7 @@ __decorate([
 ], Match.prototype, "highlights", void 0);
 __decorate([
     ManyToOne(() => Sport, (sport) => sport.matches),
-    __metadata("design:type", Sport)
+    __metadata("design:type", Object)
 ], Match.prototype, "sport", void 0);
 __decorate([
     ManyToMany(() => User, (user) => user.followedMatches),

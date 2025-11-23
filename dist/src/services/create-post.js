@@ -5,6 +5,7 @@ import { User } from "../database/postgres/entities/user-entity.js";
 import { WorkoutActivity } from "../database/postgres/entities/workout-activity.js";
 import { In } from "typeorm";
 import { extractHashtags, upsertHashtags, syncHashtagsToNeo4j } from "./hashtag-service.js";
+import { processMentions } from "./mention-service.js";
 const postRepository = AppDataSource.getRepository(Post);
 const userRepository = AppDataSource.getRepository(User);
 const workoutActivityRepository = AppDataSource.getRepository(WorkoutActivity);
@@ -46,11 +47,16 @@ export const createPost = async ({ authorId, content, parentId, workoutActivityI
         hashtags: hashtags
     });
     const savedPost = await postRepository.save(newPost);
+    const postCreatedAtIso = savedPost.createdAt.toISOString();
+    const postUpdatedAtIso = savedPost.updatedAt.toISOString();
     console.log('[createPost] Saved post ID:', savedPost.id);
     try {
         await driver.executeQuery(`MERGE (u:User {id: $userId})
              MERGE (p:Post {id: $postId})
-             MERGE (u)-[:POSTED]->(p)`, { userId: author.id, postId: savedPost.id });
+             ON CREATE SET p.createdAt = datetime($createdAt), p.authorId = $userId
+             SET p.updatedAt = datetime($updatedAt),
+                 p.authorId = coalesce(p.authorId, $userId)
+             MERGE (u)-[:POSTED]->(p)`, { userId: author.id, postId: savedPost.id, createdAt: postCreatedAtIso, updatedAt: postUpdatedAtIso });
         if (parent) {
             await driver.executeQuery(`MERGE (child:Post {id: $childId})
                  MERGE (parent:Post {id: $parentId})
@@ -65,12 +71,18 @@ export const createPost = async ({ authorId, content, parentId, workoutActivityI
         }
         // Sincroniza hashtags no Neo4j
         if (hashtags.length > 0) {
-            await syncHashtagsToNeo4j(savedPost.id, hashtags, author.id);
+            await syncHashtagsToNeo4j(savedPost.id, hashtags, author.id, {
+                postCreatedAt: savedPost.createdAt,
+                postUpdatedAt: savedPost.updatedAt
+            });
         }
     }
     catch (error) {
         console.warn("Failed to mirror post graph relation", error);
     }
+    // Processa menções (cria registros de Mention e Notification)
+    // Executa em background para não bloquear a resposta
+    processMentions(savedPost.id, content, author.id).catch(err => console.error(`Failed to process mentions for post ${savedPost.id}`, err));
     const savedWithRelations = await postRepository.findOne({
         where: { id: savedPost.id },
         relations: [

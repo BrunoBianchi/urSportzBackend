@@ -87,9 +87,11 @@ export async function upsertHashtags(tags, content) {
  * Sincroniza hashtags no Neo4j
  * Cria nós Hashtag e relacionamentos HAS_TAG e USED_TAG
  */
-export async function syncHashtagsToNeo4j(postId, hashtags, userId) {
+export async function syncHashtagsToNeo4j(postId, hashtags, userId, options = {}) {
     if (hashtags.length === 0)
         return;
+    const postCreatedAt = (options.postCreatedAt ?? new Date()).toISOString();
+    const postUpdatedAt = (options.postUpdatedAt ?? options.postCreatedAt ?? new Date()).toISOString();
     try {
         // Cria nós Hashtag e relacionamentos HAS_TAG
         await driver.executeQuery(`UNWIND $hashtags AS hashtagData
@@ -97,12 +99,17 @@ export async function syncHashtagsToNeo4j(postId, hashtags, userId) {
              ON CREATE SET h.displayTag = hashtagData.displayTag
              
              MERGE (p:Post {id: $postId})
+             ON CREATE SET p.createdAt = datetime($postCreatedAt), p.authorId = $userId
+             SET p.updatedAt = datetime($postUpdatedAt),
+                 p.authorId = coalesce(p.authorId, $userId)
              MERGE (p)-[:HAS_TAG]->(h)`, {
             postId,
             hashtags: hashtags.map(h => ({
                 tag: h.tag,
                 displayTag: h.displayTag
-            }))
+            })),
+            postCreatedAt,
+            postUpdatedAt
         });
         // Cria/atualiza relacionamentos USED_TAG entre User e Hashtag
         await driver.executeQuery(`UNWIND $hashtags AS hashtagData

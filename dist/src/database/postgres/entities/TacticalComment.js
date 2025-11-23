@@ -41,11 +41,11 @@ __decorate([
 ], TacticalComment.prototype, "drawingData", void 0);
 __decorate([
     ManyToOne(() => User, (user) => user.tacticalComments),
-    __metadata("design:type", User)
+    __metadata("design:type", Object)
 ], TacticalComment.prototype, "author", void 0);
 __decorate([
     ManyToOne(() => TacticalAnalysis, (analysis) => analysis.comments),
-    __metadata("design:type", TacticalAnalysis)
+    __metadata("design:type", Object)
 ], TacticalComment.prototype, "analysis", void 0);
 __decorate([
     ManyToOne(() => TacticalComment, { nullable: true }),

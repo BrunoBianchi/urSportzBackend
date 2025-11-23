@@ -64,11 +64,14 @@ export const getUserSuggestions = async ({ userId, limit = 5 }) => {
 };
 /**
  * Busca IDs de usuários aleatórios do Neo4j
+ * Filtra usuários que o usuário atual já segue
  */
 async function getRandomUserIds(excludeUserId, limit) {
     try {
-        const result = await driver.executeQuery(`MATCH (u:User)
+        const result = await driver.executeQuery(`MATCH (me:User {id: $excludeUserId})
+             MATCH (u:User)
              WHERE u.id <> $excludeUserId
+               AND NOT (me)-[:FOLLOWS]->(u)
              RETURN u.id as userId
              ORDER BY rand()
              LIMIT $limit`, { excludeUserId, limit: neo4j.int(limit) });
@@ -152,13 +155,27 @@ async function getSmartSuggestions(userId, limit) {
 }
 /**
  * Fallback: busca usuários aleatórios diretamente do Postgres
+ * Filtra usuários que o usuário atual já segue
  */
 async function getRandomUsersFromPostgres(excludeUserId, limit) {
+    // Busca o usuário atual com seus seguidos
+    const currentUser = await userRepository.findOne({
+        where: { id: excludeUserId },
+        relations: ['following']
+    });
+    if (!currentUser) {
+        return [];
+    }
+    // IDs dos usuários que já segue
+    const followingIds = (currentUser.following || []).map(u => u.id);
+    followingIds.push(excludeUserId); // Adiciona o próprio usuário para excluir
+    // Busca usuários que NÃO estão na lista de seguidos
     return userRepository
         .createQueryBuilder("user")
-        .where("user.id != :excludeUserId", { excludeUserId })
+        .where("user.id NOT IN (:...excludeIds)", { excludeIds: followingIds })
         .orderBy("RANDOM()")
-        .limit(limit)
+        .limit(limit * 2) // Busca mais para ter opções
+        .take(limit)
         .getMany();
 }
 //# sourceMappingURL=get-user-suggestions.js.map

@@ -12,7 +12,9 @@ const defaultRelations = [
     "likes",
     "likes.user",
     "repostedBy",
-    "workoutActivities"
+    "workoutActivity",
+    "workoutActivities",
+    "hashtags"
 ];
 export const getUserPosts = async ({ userId, relations }) => {
     return postRepository.find({

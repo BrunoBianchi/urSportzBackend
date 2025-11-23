@@ -59,11 +59,11 @@ __decorate([
 ], MatchEvent.prototype, "description", void 0);
 __decorate([
     ManyToOne(() => Match, (match) => match.events),
-    __metadata("design:type", Match)
+    __metadata("design:type", Object)
 ], MatchEvent.prototype, "match", void 0);
 __decorate([
     ManyToOne(() => User, { nullable: true }),
-    __metadata("design:type", User)
+    __metadata("design:type", Object)
 ], MatchEvent.prototype, "reportedBy", void 0);
 __decorate([
     Column({ type: 'boolean', default: false }),

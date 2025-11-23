@@ -77,11 +77,11 @@ __decorate([
 ], TacticalAnalysis.prototype, "isVerified", void 0);
 __decorate([
     ManyToOne(() => User, (user) => user.tacticalAnalyses),
-    __metadata("design:type", User)
+    __metadata("design:type", Object)
 ], TacticalAnalysis.prototype, "author", void 0);
 __decorate([
     ManyToOne(() => Sport, (sport) => sport.tacticalAnalyses),
-    __metadata("design:type", Sport)
+    __metadata("design:type", Object)
 ], TacticalAnalysis.prototype, "sport", void 0);
 __decorate([
     ManyToOne(() => Highlight, (highlight) => highlight.tacticalAnalyses, { nullable: true }),

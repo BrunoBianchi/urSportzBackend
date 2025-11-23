@@ -123,6 +123,13 @@ export const toPublicPost = (post) => {
     if (post.workoutActivities && post.workoutActivities.length > 0) {
         publicPost.workoutActivities = post.workoutActivities.map(toPublicWorkoutActivity);
     }
+    if (post.hashtags && post.hashtags.length > 0) {
+        publicPost.hashtags = post.hashtags.map(hashtag => ({
+            id: hashtag.id,
+            tag: hashtag.tag,
+            displayTag: hashtag.displayTag
+        }));
+    }
     return publicPost;
 };
 //# sourceMappingURL=sanitizers.js.map

@@ -84,11 +84,11 @@ __decorate([
 ], Highlight.prototype, "likes", void 0);
 __decorate([
     ManyToOne(() => User, (user) => user.highlights),
-    __metadata("design:type", User)
+    __metadata("design:type", Object)
 ], Highlight.prototype, "author", void 0);
 __decorate([
     ManyToOne(() => Sport, (sport) => sport.highlights),
-    __metadata("design:type", Sport)
+    __metadata("design:type", Object)
 ], Highlight.prototype, "sport", void 0);
 __decorate([
     ManyToMany(() => User, { cascade: true }),

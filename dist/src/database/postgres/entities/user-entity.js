@@ -16,6 +16,9 @@ let User = class User extends BaseEntity {
     password;
     imgURL;
     provider;
+    bio;
+    location;
+    website;
     hashPassword() {
         this.password = bcrypt.hashSync(this.password, 10);
     }
@@ -34,6 +37,12 @@ let User = class User extends BaseEntity {
     ownedGroups;
     preferences;
     stats;
+    // Menções recebidas
+    mentions;
+    // Notificações recebidas
+    notifications;
+    // Notificações onde o usuário é o ator
+    actorNotifications;
 };
 __decorate([
     Column({ type: "string" }),
@@ -55,6 +64,18 @@ __decorate([
     Column({ type: "string" }),
     __metadata("design:type", String)
 ], User.prototype, "provider", void 0);
+__decorate([
+    Column({ type: "text", nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "bio", void 0);
+__decorate([
+    Column({ type: "string", nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "location", void 0);
+__decorate([
+    Column({ type: "string", nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "website", void 0);
 __decorate([
     BeforeInsert(),
     __metadata("design:type", Function),
@@ -133,6 +154,18 @@ __decorate([
     Column({ type: "json", nullable: true }),
     __metadata("design:type", Object)
 ], User.prototype, "stats", void 0);
+__decorate([
+    OneToMany("Mention", "mentionedUser"),
+    __metadata("design:type", Array)
+], User.prototype, "mentions", void 0);
+__decorate([
+    OneToMany("Notification", "recipient"),
+    __metadata("design:type", Array)
+], User.prototype, "notifications", void 0);
+__decorate([
+    OneToMany("Notification", "actor"),
+    __metadata("design:type", Array)
+], User.prototype, "actorNotifications", void 0);
 User = __decorate([
     Entity()
 ], User);

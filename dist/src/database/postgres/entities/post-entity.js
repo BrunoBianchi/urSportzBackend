@@ -23,6 +23,8 @@ let Post = class Post extends BaseEntity {
     workoutActivities;
     // Hashtags do post
     hashtags;
+    // Menções no post
+    mentions;
 };
 __decorate([
     Column({ type: "string" }),
@@ -79,6 +81,10 @@ __decorate([
     }),
     __metadata("design:type", Array)
 ], Post.prototype, "hashtags", void 0);
+__decorate([
+    OneToMany("Mention", "post"),
+    __metadata("design:type", Array)
+], Post.prototype, "mentions", void 0);
 Post = __decorate([
     Entity()
 ], Post);
